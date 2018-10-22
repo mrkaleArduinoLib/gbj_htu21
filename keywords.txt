@@ -1,0 +1,41 @@
+#######################################
+# Syntax Coloring Map
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+gbj_htu21	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+begin	KEYWORD2
+reset	KEYWORD2
+measureHumidity	KEYWORD2
+measureTemperature	KEYWORD2
+setResolution	KEYWORD2
+setResolutionTemp14	KEYWORD2
+setResolutionTemp13	KEYWORD2
+setResolutionTemp12	KEYWORD2
+setResolutionTemp11	KEYWORD2
+setResolutionRhum12	KEYWORD2
+setResolutionRhum11	KEYWORD2
+setResolutionRhum10	KEYWORD2
+setResolutionRhum8	KEYWORD2
+setHeaterEnabled	KEYWORD2
+setHeaterDisabled	KEYWORD2
+setHoldMasterMode	KEYWORD2
+getHeaterEnabled	KEYWORD2
+getResolutionTemp	KEYWORD2
+getResolutionRhum	KEYWORD2
+getSNA	KEYWORD2
+getSNB	KEYWORD2
+getSNC	KEYWORD2
+getSerialNumber	KEYWORD2
+getVddStatus	KEYWORD2
+getHoldMasterMode	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################

@@ -1,0 +1,12 @@
+{
+  "name": "gbjHTU21",
+  "keywords": "sensors, temperature, humidity, twowire, 2-wire, i2c, iic, bus",
+  "description": "Library for the humidity and temperature sensors HTU21D(F), which is binary compatible with sensor SHT21, SHT20, HDC1080 communicating on two-wire (I2C) bus.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mrkaleArduinoLib/gbj_htu21.git"
+  },
+  "version": "1.0.0",
+  "frameworks": "arduino",
+  "platforms": ["atmelavr", "atmelsam", "espressif8266", "espressif32"]
+}
