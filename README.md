@@ -47,11 +47,11 @@ Library for the humidity and temperature sensors *HTUD(F)* communicating on two-
 
 <a id="errors"></a>
 #### Error codes
-- **gbj\_htu21::ERR\_SERIAL\_A**: Serial number upper double word reading failure.
-- **gbj\_htu21::ERR\_SERIAL\_B**: Serial number upper double word reading failure.
-- **gbj\_htu21::ERR\_REG\_RHT\_READ**: Reading RH/T User Register failure.
-- **gbj\_htu21::ERR\_MEASURE\_RHUM**: Measuring relative humidity failure.
-- **gbj\_htu21::ERR\_MEASURE\_TEMP**: Measuring temperature failure.
+- **gbj\_htu21::ERROR\_SERIAL\_A**: Serial number upper double word reading failure.
+- **gbj\_htu21::ERROR\_SERIAL\_B**: Serial number upper double word reading failure.
+- **gbj\_htu21::ERROR\_REG\_RHT\_READ**: Reading RH/T User Register failure.
+- **gbj\_htu21::ERROR\_MEASURE\_RHUM**: Measuring relative humidity failure.
+- **gbj\_htu21::ERROR\_MEASURE\_TEMP**: Measuring temperature failure.
 
 Other error codes as well as result code are inherited from the parent library [gbjTwoWire](#dependency).
 
@@ -65,6 +65,7 @@ Other error codes as well as result code are inherited from the parent library [
 - [reset()](#reset)
 - [measureHumidity()](#measureHumidity)
 - [measureTemperature()](#measureTemperature)
+- [calculateDewpoint()](#calculateDewpoint)
 
 #### Setters
 - [setResolution()](#setResolution)
@@ -225,6 +226,38 @@ Temperature in centigrade or the error value [gbj\_htu21::ERROR\_MEASURE\_TEMP](
 
 #### See also
 [measureHumidity()](#measureHumidity)
+
+[getLastResult()](#getLastResult)
+
+[Back to interface](#interface)
+
+
+<a id="calculateDewpoint"></a>
+## calculateDewpoint()
+#### Description
+The method takes, sanitizes, and stores sensor parameters to a class instance object and initiates two-wire bus.
+- The method sets parameters specific to the sensor itself.
+- All the method parameters can be changed dynamically with corresponding [setters](#interface) later in a sketch.
+
+#### Syntax
+    uint8_t calculateDewpoint(float rhum, float temp);
+
+#### Parameters
+- **rhum**: Ambient relative humidity in per cent.
+  - *Valid values*: rational numbers greater than 0.0
+  - *Default value*: none
+
+- **temp**: Ambient temperature in centigrade.
+  - *Valid values*: rational numbers greater than -273.15 but other than -235.66
+  - *Default value*: none
+
+#### Returns
+Dew point temperature in centigrade or the error value either [gbj\_htu21::ERROR\_MEASURE\_RHUM](#errors) or [gbj\_htu21::ERROR\_MEASURE\_TEMP](#errors) with corresponding error code in the library object.
+
+#### See also
+[measureHumidity()](#measureHumidity)
+
+[measureTemperature()](#measureTemperature)
 
 [getLastResult()](#getLastResult)
 

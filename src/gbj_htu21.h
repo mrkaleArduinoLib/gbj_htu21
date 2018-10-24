@@ -99,8 +99,7 @@ uint8_t reset();
   Measure relative humidity.
 
   DESCRIPTION:
-  The method measures relative humidity as well as temperature, but returns
-  the humidity only. The temperature can be returned by another method.
+  The method measures relative humidity in per cents.
 
   PARAMETERS: none
 
@@ -114,7 +113,7 @@ float measureHumidity();
   Measure temperature.
 
   DESCRIPTION:
-  The method measures temperature only.
+  The method measures ambient temperature in centigrades.
 
   PARAMETERS: none
 
@@ -122,6 +121,30 @@ float measureHumidity();
   Temperature in centigrades or error code ERROR_MEASURE_TEMP.
 */
 float measureTemperature();
+
+
+/*
+  Calculate dew point temperature.
+
+  DESCRIPTION:
+  The method calculates dew point temperature from provided temperature
+  and relative humidity.
+
+  PARAMETERS:
+  rhum - Ambient relative humidity in per cents.
+         - Data type: float
+         - Default value: none
+         - Limited range: > 0.0
+
+  temp - Ambient temperature in centigrades.
+         - Data type: float
+         - Default value: none
+         - Limited range: > -273.15 and <> -235.66
+
+  RETURN:
+  Temperature of dew point in centigrades.
+*/
+float calculateDewpoint(float rhum, float temp);
 
 
 //------------------------------------------------------------------------------
