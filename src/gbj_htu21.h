@@ -385,7 +385,8 @@ uint8_t setBitResolution(bool bitRes1, bool bitRes0);
                 - Default value: none
                 - Limited range: 0 ~ 0xFFFF
   RETURN:
-  Temperature in centigrade.
+  Temperature in centigrade or error code either ERROR_MEASURE_RHUM
+  or ERROR_MEASURE_TEMP.
 */
 float calculateTemperature(uint16_t wordMeasure);
 
