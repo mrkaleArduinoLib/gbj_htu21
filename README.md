@@ -207,8 +207,6 @@ Relative humidity or the error value [gbj\_htu21::ERROR\_MEASURE\_RHUM](#errors)
 #### See also
 [measureTemperature()](#measureTemperature)
 
-[getLastResult()](#getLastResult)
-
 [Back to interface](#interface)
 
 
@@ -228,8 +226,6 @@ Temperature in centigrade or the error value [gbj\_htu21::ERROR\_MEASURE\_TEMP](
 
 #### See also
 [measureHumidity()](#measureHumidity)
-
-[getLastResult()](#getLastResult)
 
 [Back to interface](#interface)
 
