@@ -3,7 +3,7 @@
   Basic measurement with gbjHTU21 library.
 
   DESCRIPTION:
-  The sketch measures humidity, temperature, and dew point with HTU21D(F) sensor.
+  The sketch measures humidity and temperature with HTU21D(F) sensor.
   - Connect sensor's pins to microcontroller's I2C bus as described in README.md
     for used platform accordingly.
 
@@ -24,7 +24,7 @@ gbj_htu21 Sensor = gbj_htu21();
 // gbj_htu21 Sensor = gbj_htu21(gbj_htu21::CLOCK_100KHZ, true, D2, D1);
 // gbj_htu21 Sensor = gbj_htu21(gbj_htu21::CLOCK_400KHZ);
 
-float tempValue, rhumValue, dewpValue;
+float tempValue, rhumValue;
 
 
 void errorHandler(String location)
@@ -125,7 +125,7 @@ void setup()
     errorHandler("Resolution");
     return;
   }
-  Serial.println("Humidity (%) / Temperature ('C) / Dew Point ('C)");
+  Serial.println("Humidity (%) / Temperature ('C)");
 }
 
 
@@ -154,18 +154,6 @@ void loop()
   {
     Serial.println();
     errorHandler("Temperature");
-  }
-  // Dew Point
-  dewpValue = Sensor.calculateDewpoint(rhumValue, tempValue);
-  if (Sensor.isSuccess())
-  {
-    Serial.print(" / ");
-    Serial.print(dewpValue);
-  }
-  else
-  {
-    Serial.println();
-    errorHandler("Dewpoint");
   }
   Serial.println();
   delay(PERIOD_MEASURE);
