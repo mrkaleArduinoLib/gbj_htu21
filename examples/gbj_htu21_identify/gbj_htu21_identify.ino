@@ -20,7 +20,7 @@
 
 
 gbj_htu21 Sensor = gbj_htu21();
-// gbj_htu21 Sensor = gbj_htu21(gbj_htu21::CLOCK_100KHZ, true, D2, D1);
+// gbj_htu21 Sensor = gbj_htu21(gbj_htu21::CLOCK_100KHZ, D2, D1);
 // gbj_htu21 Sensor = gbj_htu21(gbj_htu21::CLOCK_400KHZ);
 
 
@@ -49,7 +49,7 @@ void errorHandler(String location)
       break;
 
     case gbj_htu21::ERROR_NACK_DATA:
-      Serial.println("ERROR_PINS");
+      Serial.println("ERROR_NACK_DATA");
       break;
 
     case gbj_htu21::ERROR_NACK_OTHER:
@@ -75,6 +75,7 @@ void errorHandler(String location)
       break;
 #endif
 
+    // Sensor specific
     case gbj_htu21::ERROR_SERIAL_A:
       Serial.println("ERROR_SERIAL_A");
       break;
@@ -141,7 +142,8 @@ void setup()
   Serial.print("Humidity Resolution: ");
   Serial.print(Sensor.getResolutionRhum());
   Serial.println(" bits");
-  Serial.println(F("---"));
+  Serial.println("---");
+  Serial.println("END");
 }
 
 

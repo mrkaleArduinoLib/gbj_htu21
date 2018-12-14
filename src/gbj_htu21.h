@@ -14,7 +14,7 @@
   CREDENTIALS:
   Author: Libor Gabaj
   GitHub: https://github.com/mrkaleArduinoLib/gbj_htu21.git
- */
+*/
 #ifndef GBJ_HTU21_H
 #define GBJ_HTU21_H
 
@@ -55,9 +55,8 @@ enum Resolutions  // In bits
 /*
   Constructor taken from parent class.
 */
-gbj_htu21(uint32_t clockSpeed = CLOCK_100KHZ, bool busStop = true, \
-  uint8_t pinSDA = 4, uint8_t pinSCL = 5) \
-: gbj_twowire(clockSpeed, busStop, pinSDA, pinSCL) {};
+gbj_htu21(uint32_t clockSpeed = CLOCK_100KHZ, uint8_t pinSDA = 4, uint8_t pinSCL = 5) \
+: gbj_twowire(clockSpeed, pinSDA, pinSCL) {};
 
 
 /*
@@ -196,7 +195,7 @@ enum Commands
   };
 enum Timing
 {
-  TIMING_RESET = 15,  // Resetting delay
+  TIMING_RESET = 15,  // Resetting delay in milliseconds
 };
 
 //------------------------------------------------------------------------------
@@ -211,9 +210,9 @@ struct
 } _status;
 struct
 {
-  bool enabled;  // Flag about initialization (reading) the user register
-  uint8_t regValue;  // Value of user register 1
-} _user;  // Parameters of user register
+  bool read;  // Flag about initialization (reading) the user register
+  uint8_t value;  // Value of user register 1
+} _userReg;  // Parameters of user register
 struct
 {
   uint8_t temp[4] = {14, 12, 13, 11};  // List of temperature resolutions
