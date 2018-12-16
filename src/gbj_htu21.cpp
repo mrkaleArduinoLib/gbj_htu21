@@ -5,8 +5,8 @@ const String gbj_htu21::VERSION = "GBJ_HTU21 1.0.0";
 uint8_t gbj_htu21::begin(bool holdMasterMode)
 {
   if (gbj_twowire::begin()) return getLastResult();
-  setHoldMasterMode(holdMasterMode);
   if (setAddress()) return getLastResult();
+  setHoldMasterMode(holdMasterMode);
   if (reset()) return getLastResult();
   if (readSerialNumber()) return getLastResult();
   return getLastResult();
