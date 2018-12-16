@@ -5,6 +5,7 @@ Library for the humidity and temperature sensors *HTUD(F)* communicating on two-
 - Sensor address is `0x40` hardcoded and cannot be changed by any library method.
 - The library provides measured temperature in degrees of Celsius and relative humidity in percentage.
 - For conversion among various temperature unit scales and for calculating dew point temperature use library **gbjAppHelpers**.
+- At erroneous measurement of relative humidity or temperature the corresponding method returns erroneous value `999.0`.
 
 
 #### Particle hardware configuration
@@ -50,6 +51,7 @@ Library for the humidity and temperature sensors *HTUD(F)* communicating on two-
 
 <a id="errors"></a>
 #### Error codes
+- **gbj\_htu21::ERR\_RESET**: Sensor reset failure.
 - **gbj\_htu21::ERROR\_SERIAL\_A**: Serial number upper double word reading failure.
 - **gbj\_htu21::ERROR\_SERIAL\_B**: Serial number upper double word reading failure.
 - **gbj\_htu21::ERROR\_REG\_RHT\_READ**: Reading RH/T User Register failure.
@@ -93,6 +95,7 @@ Other error codes as well as result code are inherited from the parent library [
 - [getSerialNumber()](#getSerial)
 - [getVddStatus()](#getVddStatus)
 - [getHoldMasterMode()](#getHoldMasterMode)
+- [getErrorRHT()](#getErrorRHT)
 
 Other possible setters and getters are inherited from the parent library [gbjTwoWire](#dependency) and described there.
 
@@ -194,7 +197,7 @@ The method measures relative humidity.
 None
 
 #### Returns
-Relative humidity or the error value [gbj\_htu21::ERROR\_MEASURE\_RHUM](#errors) with corresponding error code in the library object.
+Relative humidity or erroneous value returned by [getErrorRHT()](#getErrorRHT). The error code can be tested in the operational code with the method [getLastResult()](#getLastResult), [isError()](#isError), or [isSuccess()](#isSuccess).
 
 #### See also
 [measureTemperature()](#measureTemperature)
@@ -214,7 +217,7 @@ The method measures temperature.
 None
 
 #### Returns
-Temperature in centigrade or the error value [gbj\_htu21::ERROR\_MEASURE\_TEMP](#errors) with corresponding error code in the library object.
+Temperature in centigrade or erroneous value returned by [getErrorRHT()](#getErrorRHT). The error code can be tested in the operational code with the method [getLastResult()](#getLastResult), [isError()](#isError), or [isSuccess()](#isSuccess).
 
 #### See also
 [measureHumidity()](#measureHumidity)
@@ -475,5 +478,27 @@ Current flag about measuring hold master mode.
 
 #### See also
 [setHoldMasterMode()](#setHoldMasterMode)
+
+[Back to interface](#interface)
+
+
+<a id="getErrorRHT"></a>
+## getErrorRHT()
+#### Description
+The method return virtually wrong relative humidity or temperature value at erroneous measurement usually at incorrect CRC from the sensor.
+
+#### Syntax
+    float getErrorRHT();
+
+#### Parameters
+None
+
+#### Returns
+Erroneous relative humidity or temperature.
+
+#### See also
+[measureTemperature()](#measureTemperature)
+
+[measureHumidity()](#measureHumidity)
 
 [Back to interface](#interface)

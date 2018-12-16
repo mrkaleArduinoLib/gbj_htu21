@@ -43,6 +43,10 @@ void errorHandler(String location)
       Serial.println("ERROR_PINS");
       break;
 
+    case gbj_htu21::ERROR_RCV_DATA:
+      Serial.println("ERROR_RCV_DATA");
+      break;
+
     // Arduino, Esspressif specific
 #if defined(__AVR__) || defined(ESP8266) || defined(ESP32)
     case gbj_htu21::ERROR_BUFFER:
@@ -154,6 +158,8 @@ void setup()
     }
     errorHandler("Resolution");
   }
+  Serial.println("---");
+  Serial.println("END");
 }
 
 

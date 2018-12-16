@@ -6,6 +6,7 @@ uint8_t gbj_htu21::begin(bool holdMasterMode)
 {
   if (gbj_twowire::begin()) return getLastResult();
   if (setAddress()) return getLastResult();
+  setUseValuesMax();
   setHoldMasterMode(holdMasterMode);
   if (reset()) return getLastResult();
   if (readSerialNumber()) return getLastResult();
@@ -17,6 +18,9 @@ uint8_t gbj_htu21::reset()
 {
   if (busSend(CMD_RESET)) return getLastResult();
   wait(TIMING_RESET);
+  // Check user register reset value
+  if (readUserRegister()) return getLastResult();
+  if (_userReg.value != RESET_REG_USER) return setLastResult(ERROR_RESET);
   if (setHeaterDisabled()) return getLastResult();
   return getLastResult();
 }
@@ -24,41 +28,75 @@ uint8_t gbj_htu21::reset()
 
 float gbj_htu21::measureHumidity()
 {
-  if (getHoldMasterMode() && busSend(CMD_MEASURE_RH_HOLD)) return setLastResult(ERROR_MEASURE_RHUM);
-  if (!getHoldMasterMode() && busSend(CMD_MEASURE_RH_NOHOLD)) return setLastResult(ERROR_MEASURE_RHUM);
-  // Read measuring and checksum bytes
-  wait(getConversionTimeRhum());
+  bool origBusStop = getBusStop();
   uint8_t data[3];
-  if (busReceive(data, sizeof(data)/sizeof(data[0]))) return setLastResult(ERROR_MEASURE_RHUM);
   uint16_t wordMeasure;
-  wordMeasure = data[0] << 8;   // MSB
-  wordMeasure |= data[1];       // LSB
-  // Test status bits (last 2 from LSB)
-  if ((wordMeasure & B11) != B10) return setLastResult(ERROR_MEASURE_RHUM);
-  // Test checksum
-  if (!checkCrc8(wordMeasure, data[2])) return setLastResult(ERROR_MEASURE_RHUM);
-  // Convert measured humidity to percentage of relative humidity
-  return calculateHumidity(wordMeasure);
+  for (uint8_t i = 0; i < PARAM_CRC_CHECKS; i++)
+  {
+    if (getHoldMasterMode())
+    {
+      setBusRpte();
+      if (busSend(CMD_MEASURE_RH_HOLD)) break;
+      setBusStopFlag(origBusStop);
+      if (busReceive(data, sizeof(data)/sizeof(data[0]))) break;
+    }
+    else
+    {
+      uint32_t waitNACK = (getUseValuesTyp() ? getConversionTimeRhumTyp() : getConversionTimeRhumMax());
+      setBusRpte();
+      if (busSend(CMD_MEASURE_RH_NOHOLD)) break;
+      setBusStopFlag(origBusStop);
+      while (busReceive(data, sizeof(data)/sizeof(data[0])) == ERROR_RCV_DATA)
+      {
+        wait(waitNACK);
+      };
+      if (getLastResult()) break;
+    }
+    wordMeasure = data[0] << 8;   // MSB
+    wordMeasure |= data[1];       // LSB
+    // Test status bits (last 2 from LSB) and CRC
+    if ((wordMeasure & B11) == B10 && checkCrc8((uint32_t) wordMeasure, data[2])) \
+      return calculateHumidity(wordMeasure);
+}
+  setLastResult(getLastResult() == SUCCESS ? ERROR_MEASURE_RHUM : getLastResult());
+  return (float) PARAM_BAD_RHT;
 }
 
 
 float gbj_htu21::measureTemperature()
 {
-  if (getHoldMasterMode() && busSend(CMD_MEASURE_TEMP_HOLD)) return setLastResult(ERROR_MEASURE_TEMP);
-  if (!getHoldMasterMode() && busSend(CMD_MEASURE_TEMP_NOHOLD)) return setLastResult(ERROR_MEASURE_TEMP);
-  // Read measuring and checksum bytes
-  wait(getConversionTimeTemp());
+  bool origBusStop = getBusStop();
   uint8_t data[3];
-  if (busReceive(data, sizeof(data)/sizeof(data[0]))) return setLastResult(ERROR_MEASURE_TEMP);
   uint16_t wordMeasure;
-  wordMeasure = data[0] << 8;   // MSB
-  wordMeasure |= data[1];       // LSB
-  // Test status bits (last 2 from LSB)
-  if ((wordMeasure & B11) != B00) return setLastResult(ERROR_MEASURE_TEMP);
-  // Test checksum
-  if (!checkCrc8((uint32_t) wordMeasure, data[2])) return setLastResult(ERROR_MEASURE_TEMP);
-  // Convert measured temperature to centigrades
-  return calculateTemperature(wordMeasure);
+  for (uint8_t i = 0; i < PARAM_CRC_CHECKS; i++)
+  {
+    if (getHoldMasterMode())
+    {
+      setBusRpte();
+      if (busSend(CMD_MEASURE_TEMP_HOLD)) break;
+      setBusStopFlag(origBusStop);
+      if (busReceive(data, sizeof(data)/sizeof(data[0]))) break;
+    }
+    else
+    {
+      setBusRpte();
+      uint32_t waitNACK = (getUseValuesTyp() ? getConversionTimeTempTyp() : getConversionTimeTempMax());
+      if (busSend(CMD_MEASURE_TEMP_NOHOLD)) break;
+      setBusStopFlag(origBusStop);
+      while (busReceive(data, sizeof(data)/sizeof(data[0])) == ERROR_RCV_DATA)
+      {
+        wait(waitNACK);
+      };
+      if (getLastResult()) break;
+    }
+    wordMeasure = data[0] << 8;   // MSB
+    wordMeasure |= data[1];       // LSB
+    // Test status bits (last 2 from LSB)
+    if ((wordMeasure & B11) == B00 && checkCrc8((uint32_t) wordMeasure, data[2])) \
+      return calculateTemperature(wordMeasure);
+  }
+  setLastResult(getLastResult() == SUCCESS ? ERROR_MEASURE_TEMP : getLastResult());
+  return (float) PARAM_BAD_RHT;
 }
 
 
@@ -105,34 +143,10 @@ bool gbj_htu21::getVddStatus()
 
 bool gbj_htu21::getHeaterEnabled()
 {
-  // Read user register if needed
-  if (!_userReg.read)
-  {
-    if (readUserRegister()) return false;
-  }
+  if (reloadUserRegister()) return false;
   // Separate heater status from HTRE (D2) bit of user register byte
   uint8_t status = (_userReg.value >> 2) & B1;
   return (status == 1);
-}
-
-
-uint8_t gbj_htu21::getResolutionTemp()
-{
-  if (!_userReg.read)
-  {
-    if (readUserRegister()) return getLastResult();
-  }
-  return _resolusion.temp[resolution()];
-}
-
-
-uint8_t gbj_htu21::getResolutionRhum()
-{
-  if (!_userReg.read)
-  {
-    if (readUserRegister()) return getLastResult();
-  }
-  return _resolusion.rhum[resolution()];
 }
 
 
@@ -148,10 +162,51 @@ uint64_t gbj_htu21::getSerialNumber()
 }
 
 
-//------------------------------------------------------------------------------
-// Private methods
-//------------------------------------------------------------------------------
+uint8_t gbj_htu21::getResolutionTemp()
+{
+  if (reloadUserRegister()) return false;
+  return _resolusion.tempBits[resolution()];
+}
 
+
+uint8_t gbj_htu21::getConversionTimeTempMax()
+{
+  if (reloadUserRegister()) return false;
+  return _resolusion.tempConvTimeMax[resolution()];
+}
+
+
+uint8_t gbj_htu21::getConversionTimeTempTyp()
+{
+  if (reloadUserRegister()) return false;
+  return _resolusion.tempConvTimeTyp[resolution()];
+}
+
+
+uint8_t gbj_htu21::getResolutionRhum()
+{
+  if (reloadUserRegister()) return false;
+  return _resolusion.rhumBits[resolution()];
+}
+
+
+uint8_t gbj_htu21::getConversionTimeRhumMax()
+{
+  if (reloadUserRegister()) return false;
+  return _resolusion.rhumConvTimeMax[resolution()];
+}
+
+
+uint8_t gbj_htu21::getConversionTimeRhumTyp()
+{
+  if (reloadUserRegister()) return false;
+  return _resolusion.rhumConvTimeTyp[resolution()];
+}
+
+
+//------------------------------------------------------------------------------
+// Auxilliary methods
+//------------------------------------------------------------------------------
 // Calculate checksum
 uint8_t gbj_htu21::crc8(uint32_t data)
 {
@@ -233,6 +288,16 @@ uint8_t gbj_htu21::readUserRegister()
 }
 
 
+uint8_t gbj_htu21::reloadUserRegister()
+{
+  if (!_userReg.read)
+  {
+    return readUserRegister();
+  }
+   return getLastResult();
+}
+
+
 uint8_t gbj_htu21::writeUserRegister()
 {
   // One transmission with command and data
@@ -244,6 +309,7 @@ uint8_t gbj_htu21::writeUserRegister()
 
 uint8_t gbj_htu21::setHeaterStatus(bool status)
 {
+  if (reloadUserRegister()) return false;
   // Write heater status for D2 bit of user register byte if needed
   if (!getHeaterEnabled() && status)
   {
@@ -261,11 +327,7 @@ uint8_t gbj_htu21::setHeaterStatus(bool status)
 
 uint8_t gbj_htu21::setBitResolution(bool bitRes1, bool bitRes0)
 {
-  // Read user register if needed
-  if (!_userReg.read)
-  {
-    if (readUserRegister()) return getLastResult();
-  }
+  if (reloadUserRegister()) return getLastResult();
   // Determine resolution code
   uint8_t code = ((bitRes1 ? B1 : B0) << 1) | (bitRes0 ? B1 : B0);
   // Write resolution bits D7 and D0 to user register byte if needed
@@ -310,54 +372,4 @@ float gbj_htu21::calculateHumidity(uint16_t wordMeasure)
   humidity /= 65536.0;
   humidity -= 6.0;
   return humidity;
-}
-
-uint8_t gbj_htu21::getConversionTimeTemp()
-{
-  uint8_t conversionTime;
-  switch (getResolutionTemp())
-  {
-    case RESOLUTION_T11_RH11:
-      conversionTime = 7;
-      break;
-
-    case RESOLUTION_T12_RH8:
-      conversionTime = 13;
-      break;
-
-    case RESOLUTION_T13_RH10:
-      conversionTime = 25;
-      break;
-
-    case RESOLUTION_T14_RH12:
-    default:
-      conversionTime = 50;
-      break;
-  }
-  return conversionTime;
-}
-
-uint8_t gbj_htu21::getConversionTimeRhum()
-{
-  uint8_t conversionTime;
-  switch (getResolutionRhum())
-  {
-    case RESOLUTION_T11_RH11:
-      conversionTime = 8;
-      break;
-
-    case RESOLUTION_T12_RH8:
-      conversionTime = 3;
-      break;
-
-    case RESOLUTION_T13_RH10:
-      conversionTime = 5;
-      break;
-
-    case RESOLUTION_T14_RH12:
-    default:
-      conversionTime = 16;
-      break;
-  }
-  return conversionTime;
 }

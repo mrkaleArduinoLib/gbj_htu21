@@ -34,11 +34,12 @@ enum Addresses
 };
 enum ErrorCodes
 {
-  ERROR_SERIAL_A = 255,  // Serial number upper double word reading failure
-  ERROR_SERIAL_B = 254,  // Serial number upper double word reading failure
-  ERROR_REG_RHT_READ = 253,  // Reading RH/T User Register 1 failure
-  ERROR_MEASURE_RHUM = 252,  // Measuring relative humidity failure
-  ERROR_MEASURE_TEMP = 251,  // Measuring temperature failure
+  ERROR_RESET = 255,  // Sensor reset failure
+  ERROR_SERIAL_A = 254,  // Serial number upper double word reading failure
+  ERROR_SERIAL_B = 253,  // Serial number upper double word reading failure
+  ERROR_REG_RHT_READ = 252,  // Reading RH/T User Register 1 failure
+  ERROR_MEASURE_RHUM = 251,  // Measuring relative humidity failure
+  ERROR_MEASURE_TEMP = 250,  // Measuring temperature failure
 };
 enum Resolutions  // In bits
 {
@@ -125,6 +126,8 @@ float measureTemperature();
 //------------------------------------------------------------------------------
 // Public setters - they usually return result code.
 //------------------------------------------------------------------------------
+inline void setUseValuesTyp() { _status.useValuesTyp = true; };
+inline void setUseValuesMax() { _status.useValuesTyp = false; };
 inline uint8_t setAddress() { return gbj_twowire::setAddress(ADDRESS); };
 inline uint8_t setHeaterEnabled() { return setHeaterStatus(true); };  // Turn on sensor's heater
 inline uint8_t setHeaterDisabled() { return setHeaterStatus(false); };  // Turn off sensor's heater
@@ -170,11 +173,12 @@ inline uint16_t getSNA() { return _status.serialSNA; };
 inline uint32_t getSNB() { return _status.serialSNB; };
 inline uint16_t getSNC() { return _status.serialSNC; };
 uint64_t getSerialNumber();
-inline bool  getHoldMasterMode()  { return _status.holdMasterMode; };
+inline bool getHoldMasterMode()  { return _status.holdMasterMode; };
 bool getVddStatus();  // Flag about correct operating voltage
 bool getHeaterEnabled();  // Flag about enabling the sensor's heater
-uint8_t  getResolutionTemp();  // Temperature resolution in bits
-uint8_t  getResolutionRhum();  // Relative humidity resolution in bits
+uint8_t getResolutionTemp();  // Temperature resolution in bits
+uint8_t getResolutionRhum();  // Relative humidity resolution in bits
+inline float getErrorRHT() { return (float) PARAM_BAD_RHT; };
 
 
 private:
@@ -197,6 +201,15 @@ enum Timing
 {
   TIMING_RESET = 15,  // Resetting delay in milliseconds
 };
+enum Resetting
+{
+  RESET_REG_USER = 0x02,  // Reset Settings = 0000_0010 (datasheet User Register)
+};
+enum Parameters
+{
+  PARAM_CRC_CHECKS = 3,  // Number of repeating action at wrong CRC
+  PARAM_BAD_RHT = 999,  // Unreasonable wrong relative humidity or temperature value
+};
 
 //------------------------------------------------------------------------------
 // Private attributes
@@ -207,6 +220,7 @@ struct
   uint16_t serialSNC;  // 2 SNC bytes of serial number
   uint16_t serialSNA;  // 2 SNA bytes of serial number
   bool holdMasterMode;  // Flag about active hold master mode at measuring
+  bool useValuesTyp;  // Flag about using typical values from datasheet
 } _status;
 struct
 {
@@ -215,16 +229,23 @@ struct
 } _userReg;  // Parameters of user register
 struct
 {
-  uint8_t temp[4] = {14, 12, 13, 11};  // List of temperature resolutions
-  uint8_t rhum[4] = {12,  8, 10, 11};  // List of humidity resolutions
+  uint8_t tempBits[4] = {14, 12, 13, 11};  // List of temperature resolutions
+  uint8_t rhumBits[4] = {12,  8, 10, 11};  // List of humidity resolutions
+  uint8_t tempConvTimeMax[4] = {50, 13, 25, 7};  // Maximal conversion times of temperature in milliseconds
+  uint8_t tempConvTimeTyp[4] = {44, 11, 22, 6};  // Maximal conversion times of temperature in milliseconds
+  uint8_t rhumConvTimeMax[4] = {16, 3, 5, 8};  // Maximal conversion times of humidity in milliseconds
+  uint8_t rhumConvTimeTyp[4] = {14, 3, 4, 7};  // Maximal conversion times of humidity in milliseconds
 } _resolusion;
 
 
 //------------------------------------------------------------------------------
 // Private methods
 //------------------------------------------------------------------------------
-uint8_t getConversionTimeTemp();
-uint8_t getConversionTimeRhum();
+inline bool getUseValuesTyp() { return _status.useValuesTyp; };
+uint8_t getConversionTimeTempMax();
+uint8_t getConversionTimeTempTyp();
+uint8_t getConversionTimeRhumMax();
+uint8_t getConversionTimeRhumTyp();
 
 /*
   Calculate CRC8 checksum for 32-bit integer
@@ -312,6 +333,20 @@ uint8_t readSerialNumber();
   Result code.
 */
 uint8_t readUserRegister();
+
+
+/*
+  Read user register if needed.
+
+  DESCRIPTION:
+  The method reads the user register if internal flag is reset.
+
+  PARAMETERS: none
+
+  RETURN:
+  Result code.
+*/
+uint8_t reloadUserRegister();
 
 
 /*
