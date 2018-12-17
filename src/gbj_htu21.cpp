@@ -79,8 +79,8 @@ float gbj_htu21::measureTemperature()
     }
     else
     {
-      setBusRpte();
       uint32_t waitNACK = (getUseValuesTyp() ? getConversionTimeTempTyp() : getConversionTimeTempMax());
+      setBusRpte();
       if (busSend(CMD_MEASURE_TEMP_NOHOLD)) break;
       setBusStopFlag(origBusStop);
       while (busReceive(data, sizeof(data)/sizeof(data[0])) == ERROR_RCV_DATA)
@@ -164,43 +164,49 @@ uint64_t gbj_htu21::getSerialNumber()
 
 uint8_t gbj_htu21::getResolutionTemp()
 {
-  if (reloadUserRegister()) return false;
-  return _resolusion.tempBits[resolution()];
+  uint8_t resIdx = resolution();
+  if (reloadUserRegister()) resIdx = 0;
+  return _resolusion.tempBits[resIdx];
 }
 
 
 uint8_t gbj_htu21::getConversionTimeTempMax()
 {
-  if (reloadUserRegister()) return false;
-  return _resolusion.tempConvTimeMax[resolution()];
+  uint8_t resIdx = resolution();
+  if (reloadUserRegister()) resIdx = 0;
+  return _resolusion.tempConvTimeMax[resIdx];
 }
 
 
 uint8_t gbj_htu21::getConversionTimeTempTyp()
 {
-  if (reloadUserRegister()) return false;
-  return _resolusion.tempConvTimeTyp[resolution()];
+  uint8_t resIdx = resolution();
+  if (reloadUserRegister()) resIdx = 0;
+  return _resolusion.tempConvTimeTyp[resIdx];
 }
 
 
 uint8_t gbj_htu21::getResolutionRhum()
 {
-  if (reloadUserRegister()) return false;
-  return _resolusion.rhumBits[resolution()];
+  uint8_t resIdx = resolution();
+  if (reloadUserRegister()) resIdx = 0;
+  return _resolusion.rhumBits[resIdx];
 }
 
 
 uint8_t gbj_htu21::getConversionTimeRhumMax()
 {
-  if (reloadUserRegister()) return false;
-  return _resolusion.rhumConvTimeMax[resolution()];
+  uint8_t resIdx = resolution();
+  if (reloadUserRegister()) resIdx = 0;
+  return _resolusion.rhumConvTimeMax[resIdx];
 }
 
 
 uint8_t gbj_htu21::getConversionTimeRhumTyp()
 {
-  if (reloadUserRegister()) return false;
-  return _resolusion.rhumConvTimeTyp[resolution()];
+  uint8_t resIdx = resolution();
+  if (reloadUserRegister()) resIdx = 0;
+  return _resolusion.rhumConvTimeTyp[resIdx];
 }
 
 

@@ -120,7 +120,7 @@ void setup()
   Serial.println("---");
 
   // Initialize Sensor
-  if (Sensor.begin()) // Use default holdMasterMode
+  if (Sensor.begin(false)) // Use default holdMasterMode
   {
     errorHandler("Begin");
     return;
@@ -136,30 +136,21 @@ void setup()
 
 void loop()
 {
-  if (Sensor.isError()) return;
   // Humidity
   rhumValue = Sensor.measureHumidity();
-  if (Sensor.isSuccess())
+  if (Sensor.isError())
   {
-    Serial.print(rhumValue);
-  }
-  else
-  {
-    Serial.println();
     errorHandler("Humidity");
   }
   // Temperature
   tempValue = Sensor.measureTemperature();
-  if (Sensor.isSuccess())
+  if (Sensor.isError())
   {
-    Serial.print(" / ");
-    Serial.print(tempValue);
-  }
-  else
-  {
-    Serial.println();
     errorHandler("Temperature");
   }
+  Serial.print(rhumValue);
+  Serial.print(" / ");
+  Serial.println(tempValue);
   Serial.println();
   delay(PERIOD_MEASURE);
 }
