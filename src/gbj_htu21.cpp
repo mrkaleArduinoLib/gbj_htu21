@@ -59,7 +59,7 @@ float gbj_htu21::measureHumidity()
       return calculateHumidity(wordMeasure);
 }
   setLastResult(getLastResult() == SUCCESS ? ERROR_MEASURE_RHUM : getLastResult());
-  return (float) PARAM_BAD_RHT;
+  return getErrorRHT();
 }
 
 
@@ -96,7 +96,7 @@ float gbj_htu21::measureTemperature()
       return calculateTemperature(wordMeasure);
   }
   setLastResult(getLastResult() == SUCCESS ? ERROR_MEASURE_TEMP : getLastResult());
-  return (float) PARAM_BAD_RHT;
+  return getErrorRHT();
 }
 
 

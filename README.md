@@ -84,6 +84,8 @@ Other error codes as well as result code are inherited from the parent library [
 - [setHeaterEnabled()](#setHeater)
 - [setHeaterDisabled()](#setHeater)
 - [setHoldMasterMode()](#setHoldMasterMode)
+- [setUseValuesTyp()](#setUseValues)
+- [setUseValuesMax()](#setUseValues)
 
 #### Getters
 - [getResolutionTemp()](#getResolutionTemp)
@@ -482,10 +484,28 @@ Current flag about measuring hold master mode.
 [Back to interface](#interface)
 
 
+<a id="setUseValues"></a>
+## setUseValuesTyp(), setUseValuesMax()
+#### Description
+The particular method sets the internal flag whether typical or maximal values from the datasheet should be used regarding conversion and reset times.
+
+#### Syntax
+    void setUseValuesTyp();
+    void setUseValuesMax();
+
+#### Parameters
+None
+
+#### Returns
+None
+
+[Back to interface](#interface)
+
+
 <a id="getErrorRHT"></a>
 ## getErrorRHT()
 #### Description
-The method return virtually wrong relative humidity or temperature value at erroneous measurement usually at incorrect CRC from the sensor.
+The method returns virtually wrong relative humidity or temperature value at erroneous measurement usually at incorrect CRC from the sensor.
 
 #### Syntax
     float getErrorRHT();

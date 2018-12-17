@@ -26,6 +26,8 @@ setResolutionRhum8	KEYWORD2
 setHeaterEnabled	KEYWORD2
 setHeaterDisabled	KEYWORD2
 setHoldMasterMode	KEYWORD2
+setUseValuesTyp	KEYWORD2
+setUseValuesMax	KEYWORD2
 getHeaterEnabled	KEYWORD2
 getResolutionTemp	KEYWORD2
 getResolutionRhum	KEYWORD2
