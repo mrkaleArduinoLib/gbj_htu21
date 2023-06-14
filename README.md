@@ -1,165 +1,145 @@
-<a id="library"></a>
 # gbjHTU21
-Library for the humidity and temperature sensors *HTUD(F)* communicating on two-wire (I2C) bus.
-- It is compatible with sensors *SHT21*, *SHT20*, *HDC1080*.
-- Sensor address is `0x40` hardcoded and cannot be changed by any library method.
-- The library provides measured temperature in degrees of Celsius and relative humidity in percentage.
-- For conversion among various temperature unit scales and for calculating dew point temperature use library **gbjAppHelpers**.
-- At erroneous measurement of relative humidity or temperature the corresponding method returns erroneous value `999.0`.
+
+Library for the humidity and temperature sensors _HTUD(F)_ with `two-wire` (also known as <abbr title='Inter-Integrated Circuit'>I2C</abbr>) bus interface.
+* It is compatible with sensors `SHT21`, `SHT20`, `HDC1080`.
+* Sensor address is `0x40` hardcoded and cannot be changed by any library method.
+* The library provides measured temperature in degrees of Celsius and relative humidity in percentage.
+* For conversion among various temperature unit scales and for calculating dew point temperature use library `gbjAppHelpers`.
+* At erroneous measurement of relative humidity or temperature the corresponding method returns erroneous value `255.0`.
 
 
 #### Particle hardware configuration
-- Connect microcontroller's pin `D0` to sensor's pin **SDA** (Serial Data).
-- Connect microcontroller's pin `D1` to sensor's pin **SCL** (Serial Clock).
+* Connect microcontroller's pin `D0` to sensor's pin **SDA** (Serial Data).
+* Connect microcontroller's pin `D1` to sensor's pin **SCL** (Serial Clock).
 
 #### Arduino UNO hardware configuration
-- Connect microcontroller's pin `A4` to sensor's pin **SDA** (Serial Data).
-- Connect microcontroller's pin `A5` to sensor's pin **SCL** (Serial Clock).
+* Connect microcontroller's pin `A4` to sensor's pin **SDA** (Serial Data).
+* Connect microcontroller's pin `A5` to sensor's pin **SCL** (Serial Clock).
 
 #### Espressif - ESP8266, ESP32 default hardware configuration
-- Connect microcontroller's pin `D2` to sensor's pin **SDA** (Serial Data).
-- Connect microcontroller's pin `D1` to sensor's pin **SCL** (Serial Clock).
+* Connect microcontroller's pin `D2` to sensor's pin **SDA** (Serial Data).
+* Connect microcontroller's pin `D1` to sensor's pin **SCL** (Serial Clock).
 
 
 <a id="dependency"></a>
+
 ## Dependency
 
 #### Particle platform
-- **Particle.h**: Includes alternative (C++) data type definitions.
+* **Particle.h**: Includes alternative (C++) data type definitions.
 
 #### Arduino platform
-- **Arduino.h**: Main include file for the Arduino SDK version greater or equal to 100.
-- **WProgram.h**: Main include file for the Arduino SDK version less than 100.
-- **inttypes.h**: Integer type conversions. This header file includes the exact-width integer definitions and extends them with additional facilities provided by the implementation.
-- **TwoWire**: I2C system library loaded from the file *Wire.h*.
+* **Arduino.h**: Main include file for the Arduino SDK version greater or equal to 100.
+* **inttypes.h**: Integer type conversions. This header file includes the exact-width integer definitions and extends them with additional facilities provided by the implementation.
+* **TwoWire**: I2C system library loaded from the file `Wire.h`.
 
 #### Custom Libraries
-- **gbjTwoWire**: I2C custom library loaded from the file *gbj_twowire.h*. The library [gbjSI70](#library) inherits common bus functionality from this library.
+* **gbjTwoWire**: I2C custom library loaded from the file `gbj_twowire.h`, which provides common bus functionality.
 
 
 <a id="constants"></a>
+
 ## Constants
-- **gbj\_htu21::VERSION**: Name and semantic version of the library.
-
-<a id="resolution"></a>
-#### Measurement resolutions
-- **gbj\_htu21::RESOLUTION\_T14\_RH12**: Resolution of temperature 14 bits, relative humidity 12 bits.
-- **gbj\_htu21::RESOLUTION\_T13\_RH10**: Resolution of temperature 13 bits, relative humidity 10 bits.
-- **gbj\_htu21::RESOLUTION\_T12\_RH8**: Resolution of temperature 12 bits, relative humidity 8 bits.
-- **gbj\_htu21::RESOLUTION\_T11\_RH11**: Resolution of temperature 11 bits, relative humidity 11 bits.
-
-
-<a id="errors"></a>
-#### Error codes
-- **gbj\_htu21::ERR\_RESET**: Sensor reset failure.
-- **gbj\_htu21::ERROR\_SERIAL\_A**: Serial number upper double word reading failure.
-- **gbj\_htu21::ERROR\_SERIAL\_B**: Serial number upper double word reading failure.
-- **gbj\_htu21::ERROR\_REG\_RHT\_READ**: Reading RH/T User Register failure.
-- **gbj\_htu21::ERROR\_MEASURE\_RHUM**: Measuring relative humidity failure.
-- **gbj\_htu21::ERROR\_MEASURE\_TEMP**: Measuring temperature failure.
-
-Other error codes as well as result code are inherited from the parent library [gbjTwoWire](#dependency).
+The library does not have specific error codes. Error codes as well as result code are inherited from the parent library [gbjTwoWire](#dependency) only. The result code and error codes can be tested in the operational code with its method `getLastResult()`, `isError()` or `isSuccess()`.
 
 
 <a id="interface"></a>
+
 ## Interface
 
 #### Main
-- [gbj_htu21()](#gbj_htu21)
-- [begin()](#begin)
-- [reset()](#reset)
-- [measureHumidity()](#measureHumidity)
-- [measureTemperature()](#measureTemperature)
+* [gbj_htu21()](#gbj_htu21)
+* [begin()](#begin)
+* [reset()](#reset)
+* [measureHumidity()](#measureHumidity)
+* [measureTemperature()](#measureTemperature)
 
 #### Setters
-- [setResolution()](#setResolution)
-- [setResolutionTemp14()](#setResolutionTemp)
-- [setResolutionTemp13()](#setResolutionTemp)
-- [setResolutionTemp12()](#setResolutionTemp)
-- [setResolutionTemp11()](#setResolutionTemp)
-- [setResolutionRhum12()](#setResolutionRhum)
-- [setResolutionRhum11()](#setResolutionRhum)
-- [setResolutionRhum10()](#setResolutionRhum)
-- [setResolutionRhum8()](#setResolutionRhum)
-- [setHeaterEnabled()](#setHeater)
-- [setHeaterDisabled()](#setHeater)
-- [setHoldMasterMode()](#setHoldMasterMode)
-- [setUseValuesTyp()](#setUseValues)
-- [setUseValuesMax()](#setUseValues)
+* [setResolutionTemp14()](#setResolutionTemp)
+* [setResolutionTemp13()](#setResolutionTemp)
+* [setResolutionTemp12()](#setResolutionTemp)
+* [setResolutionTemp11()](#setResolutionTemp)
+* [setResolutionRhum12()](#setResolutionRhum)
+* [setResolutionRhum11()](#setResolutionRhum)
+* [setResolutionRhum10()](#setResolutionRhum)
+* [setResolutionRhum8()](#setResolutionRhum)
+* [setHeaterEnabled()](#setHeater)
+* [setHeaterDisabled()](#setHeater)
+* [setHoldMasterMode()](#setHoldMasterMode)
+* [setUseValuesTyp()](#setUseValues)
+* [setUseValuesMax()](#setUseValues)
 
 #### Getters
-- [getResolutionTemp()](#getResolutionTemp)
-- [getResolutionRhum()](#getResolutionRhum)
-- [getHeaterEnabled()](#getHeaterEnabled)
-- [getSNA()](#getSerial)
-- [getSNB()](#getSerial)
-- [getSNC()](#getSerial)
-- [getSerialNumber()](#getSerial)
-- [getVddStatus()](#getVddStatus)
-- [getHoldMasterMode()](#getHoldMasterMode)
-- [getErrorRHT()](#getErrorRHT)
+* [getResolutionTemp()](#getResolutionTemp)
+* [getResolutionRhum()](#getResolutionRhum)
+* [getHeaterEnabled()](#getHeaterEnabled)
+* [getSNA()](#getSerial)
+* [getSNB()](#getSerial)
+* [getSNC()](#getSerial)
+* [getSerialNumber()](#getSerial)
+* [getVddStatus()](#getVddStatus)
+* [getHoldMasterMode()](#getHoldMasterMode)
+* [getErrorRHT()](#getErrorRHT)
 
 Other possible setters and getters are inherited from the parent library [gbjTwoWire](#dependency) and described there.
 
 
 <a id="gbj_htu21"></a>
+
 ## gbj_htu21()
+
 #### Description
 The library does not need special constructor and destructor, so that the inherited ones are good enough and there is no need to define them in the library, just use it with default or specific parameters as defined at constructor of parent library [gbjTwoWire](#dependency).
-- Constructor sets parameters specific to the two-wire bus in general.
-- All the constructor parameters can be changed dynamically with corresponding setters later in a sketch.
+* Constructor sets parameters specific to the two-wire bus in general.
+* All the constructor parameters can be changed dynamically with corresponding setters later in a sketch.
 
 #### Syntax
-    gbj_htu21(uint32_t clockSpeed, uint8_t pinSDA, uint8_t pinSCL);
+    gbj_htu21(uint32_t clockSpeed, uint8_t pinSDA, uint8_t pinSCL)
 
 #### Parameters
-<a id="prm_busClock"></a>
-- **clockSpeed**: Two-wire bus clock frequency in Hertz. If the clock is not from enumeration, it fallbacks to 100 kHz.
-  - *Valid values*: gbj\_htu21::CLOCK\_100KHZ, gbj\_htu21::CLOCK\_400KHZ
-  - *Default value*: gbj\_htu21::CLOCK\_100KHZ
+* **clockSpeed**: Two-wire bus clock frequency in Hertz. If the clock is not from enumeration, it fallbacks to 100 kHz.
+  * *Valid values*: gbj\_htu21::CLOCK\_100KHZ, gbj\_htu21::CLOCK\_400KHZ
+  * *Default value*: gbj\_htu21::CLOCK\_100KHZ
 
+* **pinSDA**: Microcontroller's pin for serial data. It is not a board pin but GPIO number. For hardware two-wire bus platforms it is irrelevant and none of methods utilizes this parameter for such as platforms for communication on the bus. On the other hand, for those platforms the parameters might be utilized for storing some specific attribute in the class instance object.
+  * *Valid values*: positive integer
+  * *Default value*: 4 (GPIO4, D2)
 
-<a id="prm_pinSDA"></a>
-- **pinSDA**: Microcontroller's pin for serial data. It is not a board pin but GPIO number. For hardware two-wire bus platforms it is irrelevant and none of methods utilizes this parameter for such as platforms for communication on the bus. On the other hand, for those platforms the parameters might be utilized for storing some specific attribute in the class instance object.
-  - *Valid values*: positive integer
-  - *Default value*: 4 (GPIO4, D2)
-
-
-<a id="prm_pinSCL"></a>
-- **pinSCL**: Microcontroller's pin for serial clock. It is not a board pin but GPIO number. For hardware two-wire bus platforms it is irrelevant and none of methods utilizes this parameter for such as platforms. On the other hand, for those platforms the parameters might be utilized for storing some specific attribute in the class instance object.
-  - *Valid values*: positive integer
-  - *Default value*: 5 (GPIO5, D1)
+* **pinSCL**: Microcontroller's pin for serial clock. It is not a board pin but GPIO number. For hardware two-wire bus platforms it is irrelevant and none of methods utilizes this parameter for such as platforms. On the other hand, for those platforms the parameters might be utilized for storing some specific attribute in the class instance object.
+  * *Valid values*: positive integer
+  * *Default value*: 5 (GPIO5, D1)
 
 #### Returns
 Object performing the sensor management.
-The constructor cannot return [a result or error code](#constants) directly, however, it stores them in the instance object. The result can be tested in the operational code with the method [getLastResult()](#getLastResult), [isError()](#isError), or [isSuccess()](#isSuccess).
+The constructor cannot return [a result or error code](#constants) directly, however, it stores them in the instance object.
 
 #### Example
 The method has all arguments defaulted and calling without any parameters is equivalent to the calling with all arguments set by corresponding constant with default value:
 
 ```cpp
-  gbj_htu21 Sensor = gbj_htu21(); // It is equivalent to
-  gbj_htu21 Sensor = gbj_htu21(gbj_htu21::CLOCK_100KHZ, D2, D1);
+  gbj_htu21 sensor = gbj_htu21(); // It is equivalent to
+  gbj_htu21 sensor = gbj_htu21(sensor.CLOCK_100KHZ, D2, D1)
 ```
 
 [Back to interface](#interface)
 
 
 <a id="begin"></a>
+
 ## begin()
+
 #### Description
 The method takes, sanitizes, and stores sensor parameters to a class instance object and initiates two-wire bus.
-- The method sets parameters specific to the sensor itself.
-- All the method parameters can be changed dynamically with corresponding [setters](#interface) later in a sketch.
+* The method sets parameters specific to the sensor itself.
+* All the method parameters can be changed dynamically with corresponding [setters](#interface) later in a sketch.
 
 #### Syntax
-    uint8_t begin(bool holdMasterMode);
+    ResultCodes begin(bool holdMasterMode)
 
 #### Parameters
-<a id="prm_holdMasterMode"></a>
-- **holdMasterMode**: Logical flag about blocking (holding) serial clock line during measurement. At no holding master mode other communication on the bus can be performed.
-  - *Valid values*: true, false
-  - *Default value*: true
+* **holdMasterMode**: Logical flag about blocking (holding) serial clock line during measurement. At no holding master mode other communication on the bus can be performed.
+  * *Valid values*: true, false
+  * *Default value*: true
 
 #### Returns
 Some of [result or error codes](#constants).
@@ -171,12 +151,14 @@ Some of [result or error codes](#constants).
 
 
 <a id="reset"></a>
+
 ## reset()
+
 #### Description
 The method resets the sensor and sets control registers to their reset settings values.
 
 #### Syntax
-    uint8_t reset();
+    ResultCodes reset()
 
 #### Parameters
 None
@@ -188,18 +170,39 @@ Some of [result or error codes](#constants).
 
 
 <a id="measureHumidity"></a>
+
 ## measureHumidity()
+
 #### Description
-The method measures relative humidity.
+The method is overloaded and measures either relative humidity alongside with temperature at once or the humidity alone.
+* The temperature is returned through referenced input parameter.
+* If the temperature input parameter is used, the humidity is compensated by the temperature coefficient according to the data sheet.
 
 #### Syntax
-    float measureHumidity();
+    float measureHumidity()
+    float measureHumidity(float &temperature)
 
 #### Parameters
-None
+* **temperature**: Referenced variable for placing a temperature value in centigrade.
+  * *Valid values*: sensor specific
+  * *Default value*: none
 
 #### Returns
-Relative humidity or erroneous value returned by [getErrorRHT()](#getErrorRHT). The error code can be tested in the operational code with the method [getLastResult()](#getLastResult), [isError()](#isError), or [isSuccess()](#isSuccess).
+Relative humidity truncated and compensated to range 0 - 100 °C or erroneous value returned by [getErrorRHT()](#getErrorRHT).
+
+#### Example
+``` cpp
+gbj_htu21 sensor = gbj_htu21();
+float tempValue, rhumValue;
+setup()
+{
+  if (sensor.isSuccess(sensor.begin()))
+  {
+    rhumValue = sensor.measureHumidity(tempValue);
+    rhumValue = sensor.measureHumidity();
+  }
+}
+```
 
 #### See also
 [measureTemperature()](#measureTemperature)
@@ -208,18 +211,20 @@ Relative humidity or erroneous value returned by [getErrorRHT()](#getErrorRHT). 
 
 
 <a id="measureTemperature"></a>
+
 ## measureTemperature()
+
 #### Description
 The method measures temperature.
 
 #### Syntax
-    float measureTemperature();
+    float measureTemperature()
 
 #### Parameters
 None
 
 #### Returns
-Temperature in centigrade or erroneous value returned by [getErrorRHT()](#getErrorRHT). The error code can be tested in the operational code with the method [getLastResult()](#getLastResult), [isError()](#isError), or [isSuccess()](#isSuccess).
+Temperature in centigrade or erroneous value returned by [getErrorRHT()](#getErrorRHT).
 
 #### See also
 [measureHumidity()](#measureHumidity)
@@ -227,34 +232,10 @@ Temperature in centigrade or erroneous value returned by [getErrorRHT()](#getErr
 [Back to interface](#interface)
 
 
-<a id="setResolution"></a>
-## setResolution()
-#### Description
-The method sets the bit resolution by input parameter, which should be appropriate library [constant](#resolution).
-The resolution is determined by that constant but in fact it is the bit resolution for temperature.
-
-#### Syntax
-    uint8_t setResolution(uint8_t resolution = gbj_htu21::RESOLUTION_T14_RH12);
-
-#### Parameters
-<a id="resolution"></a>
-- **resolution**: Desired measurement resolution in bits.
-  - *Valid values*:  [gbj\_htu21::RESOLUTION\_T14\_RH12](#resolution), [gbj\_htu21::RESOLUTION\_T13\_RH10](#resolution),  [gbj\_htu21::RESOLUTION\_T12\_RH8](#resolution), or [gbj\_htu21::RESOLUTION\_T11\_RH11](#resolution)
-  - *Default value*: [gbj\_htu21::RESOLUTION\_T14\_RH12](#resolution)
-
-#### Returns
-Some of [result or error codes](#constants).
-
-#### See also
-[setResolutionTemp11(), setResolutionTemp12(), setResolutionTemp13(), setResolutionTemp14()](#setResolutionTemp)
-
-[setResolutionRhum8(), setResolutionRhum10(), setResolutionRhum11(), setResolutionRhum12()](#setResolutionRhum)
-
-[Back to interface](#interface)
-
-
 <a id="setResolutionTemp"></a>
+
 ## setResolutionTemp11(), setResolutionTemp12(), setResolutionTemp13(), setResolutionTemp14()
+
 #### Description
 The particular method sets the bit resolution for temperature measurement to the value in its name.
 The method sets the corresponding bit resolution for the relative humidity measurement at the same time by this relation:
@@ -267,10 +248,10 @@ Temperature | Relative Humidity
 14 | 12
 
 #### Syntax
-    uint8_t setResolutionTemp11();
-    uint8_t setResolutionTemp12();
-    uint8_t setResolutionTemp13();
-    uint8_t setResolutionTemp14();
+    ResultCodes setResolutionTemp11()
+    ResultCodes setResolutionTemp12()
+    ResultCodes setResolutionTemp13()
+    ResultCodes setResolutionTemp14()
 
 #### Parameters
 None
@@ -279,20 +260,20 @@ None
 Some of [result or error codes](#constants).
 
 #### See also
-[setResolution()](#setResolution)
-
 [getResolutionTemp()](#getResolutionTemp)
 
 [Back to interface](#interface)
 
 
 <a id="getResolutionTemp"></a>
+
 ## getResolutionTemp()
+
 #### Description
 The method returns the temperature measurement resolution in bits.
 
 #### Syntax
-    uint8_t getResolutionTemp();
+    uint8_t getResolutionTemp()
 
 #### Parameters
 None
@@ -301,15 +282,15 @@ None
 Bit resolution (11, 12, 13, or 14) or some of [error codes](#errors).
 
 #### See also
-[setResolution()](#setResolution)
-
 [setResolutionTemp11(), setResolutionTemp12(), setResolutionTemp13(), setResolutionTemp14()](#setResolutionTemp)
 
 [Back to interface](#interface)
 
 
 <a id="setResolutionRhum"></a>
+
 ## setResolutionRhum8(), setResolutionRhum10(), setResolutionRhum11(), setResolutionRhum12()
+
 #### Description
 The particular method sets the bit resolution for relative humidity measurement to the value in its name.
 The method sets the corresponding bit resolution for the temperature measurement at the same time by this relation:
@@ -322,10 +303,10 @@ Relative Humidity | Temperature
 12 | 14
 
 #### Syntax
-    uint8_t setResolutionRhum8();
-    uint8_t setResolutionRhum10();
-    uint8_t setResolutionRhum11();
-    uint8_t setResolutionRhum12();
+    ResultCodes setResolutionRhum8()
+    ResultCodes setResolutionRhum10()
+    ResultCodes setResolutionRhum11()
+    ResultCodes setResolutionRhum12()
 
 #### Parameters
 None
@@ -333,19 +314,18 @@ None
 #### Returns
 Some of [result or error codes](#constants).
 
-#### See also
-[setResolution()](#setResolution)
-
 [Back to interface](#interface)
 
 
 <a id="getResolutionRhum"></a>
+
 ## getResolutionRhum()
+
 #### Description
 The method returns the relative humidity measurement resolution in bits.
 
 #### Syntax
-    uint8_t getResolutionRhum();
+    uint8_t getResolutionRhum()
 
 #### Parameters
 None
@@ -354,21 +334,21 @@ None
 Bit resolution (8, 10, 11, or 12) or some of [error codes](#errors).
 
 #### See also
-[setResolution()](#setResolution)
-
 [setResolutionRhum8(), setResolutionRhum10(), setResolutionRhum11(), setResolutionRhum12()](#setResolutionRhum)
 
 [Back to interface](#interface)
 
 
 <a id="setHeater"></a>
+
 ## setHeaterEnabled(), setHeaterDisabled()
+
 #### Description
 The particular method turns on or off a heater built-in in the sensor.
 
 #### Syntax
-    uint8_t setHeaterEnabled();
-    uint8_t setHeaterDisabled();
+    ResultCodes setHeaterEnabled()
+    ResultCodes setHeaterDisabled()
 
 #### Parameters
 None
@@ -380,20 +360,22 @@ Some of [result or error codes](#constants).
 
 
 <a id="getHeaterEnabled"></a>
+
 ## getHeaterEnabled()
+
 #### Description
 The method returns the status of the sensor's heater.
 
 #### Syntax
-    bool getHeaterEnabled();
+    bool getHeaterEnabled()
 
 #### Parameters
 None
 
 #### Returns
 Flag about the heater switched on or off.
-- **true**: The heater is on.
-- **false**: The heater is off.
+* **true**: The heater is on.
+* **false**: The heater is off.
 
 #### See also
 [setHeaterEnabled()](#setHeater)
@@ -404,54 +386,60 @@ Flag about the heater switched on or off.
 
 
 <a id="getSerial"></a>
+
 ## getSNA(), getSNB(), getSNC(), getSerialNumber()
+
 #### Description
 The particular method returns the corresponding 16-bit or 32-bit part of the serial number and the entire 64-bit serial number of the sensor.
 
 #### Syntax
-    uint16_t getSNA();
-    uint32_t getSNB();
-    uint16_t getSNC();
-    uint64_t getSerialNumber();
+    uint16_t getSNA()
+    uint32_t getSNB()
+    uint16_t getSNC()
+    uint64_t getSerialNumber()
 
 #### Parameters
 None
 
 #### Returns
-Particular part of, or entire serial number, or some of [error codes](#errors).
+Upper (<abbr title='Serial Number byte A'>SNA</abbr>), middle (<abbr title='Serial Number byte B'>SNB</abbr>), and lower (<abbr title='Serial Number byte C'>SNC</abbr>) serial simple or double word, or entire serial number.
 
 [Back to interface](#interface)
 
 
 <a id="getVddStatus"></a>
+
 ## getVddStatus()
+
 #### Description
 The method returns the status of the supply voltage, which the sensor is powered by.
 
 #### Syntax
-    bool getVddStatus();
+    bool getVddStatus()
 
 #### Parameters
 None
 
 #### Returns
 Flag about the correctness of the operating voltage.
-- **true**: The voltage is correct.
-- **false**: The voltage is incorrect.
+* **true**: The voltage is correct.
+* **false**: The voltage is incorrect.
 
 [Back to interface](#interface)
 
 
 <a id="setHoldMasterMode"></a>
+
 ## setHoldMasterMode()
+
 #### Description
 The method sets internal flag about particular measuring hold master mode.
 
 #### Syntax
-    void setHoldMasterMode(bool holdMasterMode);
+    void setHoldMasterMode(bool holdMasterMode)
 
 #### Parameters
-- **holdMasterMode**: See the same [parameter](#prm_holdMasterMode) in the method [begin()](#begin).
+* **holdMasterMode**: See the same parameter in the method [begin()](#begin).
 
 #### Returns
 None
@@ -465,12 +453,14 @@ None
 
 
 <a id="getHoldMasterMode"></a>
+
 ## getHoldMasterMode()
+
 #### Description
 The method sets internal flag about particular measuring hold master mode.
 
 #### Syntax
-    bool getHoldMasterMode();
+    bool getHoldMasterMode()
 
 #### Parameters
 None
@@ -485,13 +475,15 @@ Current flag about measuring hold master mode.
 
 
 <a id="setUseValues"></a>
+
 ## setUseValuesTyp(), setUseValuesMax()
+
 #### Description
 The particular method sets the internal flag whether typical or maximal values from the datasheet should be used regarding conversion and reset times.
 
 #### Syntax
-    void setUseValuesTyp();
-    void setUseValuesMax();
+    void setUseValuesTyp()
+    void setUseValuesMax()
 
 #### Parameters
 None
@@ -503,12 +495,14 @@ None
 
 
 <a id="getErrorRHT"></a>
+
 ## getErrorRHT()
+
 #### Description
 The method returns virtually wrong relative humidity or temperature value at erroneous measurement usually at incorrect CRC from the sensor.
 
 #### Syntax
-    float getErrorRHT();
+    float getErrorRHT()
 
 #### Parameters
 None
