@@ -399,7 +399,7 @@ private:
   }
 
   /*
-    Validate byte array by CRC
+    Validate 3 byte array by provided
 
     DESCRIPTION:
     The method checks whether provided CRC8 checksum is valid for input byte

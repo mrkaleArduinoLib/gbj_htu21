@@ -3,12 +3,11 @@
 float gbj_htu21::readTemperature()
 {
   uint8_t data[3];
-  uint16_t wordMeasure;
-  setDelayReceive(getConversionTimeTempMax());
   for (uint8_t i = 0; i < Params::PARAM_CRC_CHECKS; i++)
   {
     if (getHoldMasterMode())
     {
+      setDelayReceive(getConversionTimeTempMax());
       if (isError(busReceive(Commands::CMD_MEASURE_TEMP_HOLD,
                              data,
                              sizeof(data) / sizeof(data[0]))))
@@ -18,26 +17,23 @@ float gbj_htu21::readTemperature()
     }
     else
     {
-      uint32_t waitNACK = getConversionTimeTemp();
+      setDelayReceive(0);
       while (busReceive(Commands::CMD_MEASURE_TEMP_NOHOLD,
                         data,
                         sizeof(data) / sizeof(data[0])) ==
              ResultCodes::ERROR_RCV_DATA)
       {
-        wait(waitNACK);
+        wait(getConversionTimeTemp());
       };
       if (isError())
       {
         break;
       }
     }
-    wordMeasure = data[0] << 8;
-    wordMeasure |= data[1];
-    // Test status bits (last 2 from LSB) and CRC
-    if ((wordMeasure & B11) == B00 &&
-        checkCrc8(static_cast<uint32_t>(wordMeasure), data[2]))
+    // Test status bits (last 2 from LSB) and CRC, calculate without status bits
+    if ((data[1] & B11) == B00 && checkCrc8(data))
     {
-      return calculateTemperature(wordMeasure);
+      return calculateTemperature((data[0] << 8) | (data[1] & 0xFC));
     }
   }
   setLastResult(isSuccess() ? ResultCodes::ERROR_MEASURE : getLastResult());
@@ -47,12 +43,11 @@ float gbj_htu21::readTemperature()
 float gbj_htu21::readHumidity()
 {
   uint8_t data[3];
-  uint16_t wordMeasure;
-  setDelayReceive(getConversionTimeRhumMax());
   for (uint8_t i = 0; i < Params::PARAM_CRC_CHECKS; i++)
   {
     if (getHoldMasterMode())
     {
+      setDelayReceive(getConversionTimeRhumMax());
       if (isError(busReceive(Commands::CMD_MEASURE_RH_HOLD,
                              data,
                              sizeof(data) / sizeof(data[0]))))
@@ -62,26 +57,23 @@ float gbj_htu21::readHumidity()
     }
     else
     {
-      uint32_t waitNACK = getConversionTimeRhum();
+      setDelayReceive(0);
       while (busReceive(Commands::CMD_MEASURE_RH_NOHOLD,
                         data,
                         sizeof(data) / sizeof(data[0])) ==
              ResultCodes::ERROR_RCV_DATA)
       {
-        wait(waitNACK);
+        wait(getConversionTimeRhum());
       };
       if (isError())
       {
         break;
       }
     }
-    wordMeasure = data[0] << 8;
-    wordMeasure |= data[1];
-    // Test status bits (last 2 from LSB) and CRC
-    if ((wordMeasure & B11) == B10 &&
-        checkCrc8(static_cast<uint32_t>(wordMeasure), data[2]))
+    // Test status bits (last 2 from LSB) and CRC, calculate without status bits
+    if ((data[1] & B11) == B10 && checkCrc8(data))
     {
-      return calculateHumidity(wordMeasure);
+      return calculateHumidity((data[0] << 8) | (data[1] & 0xFC));
     }
   }
   setLastResult(isSuccess() ? ResultCodes::ERROR_MEASURE : getLastResult());
@@ -101,7 +93,7 @@ gbj_htu21::ResultCodes gbj_htu21::readSerialNumber()
       return setLastResult(ResultCodes::ERROR_SN);
     }
     _status.serialSNB = 0x00000000;
-    /* From SNB_3 to SNB_0
+    /* From SNB_3 to SNB_0.
       After each SNB byte the CRC byte follows, i.e., there are 4 pairs of
       SNB-CRC bytes. Each SNB byte is CRC checked separately.
     */
@@ -109,7 +101,7 @@ gbj_htu21::ResultCodes gbj_htu21::readSerialNumber()
     {
       _status.serialSNB <<= 8;
       _status.serialSNB |= data[2 * i];
-      if (!checkCrc8(data[2 * i], data[2 * i + 1]))
+      if (!checkCrc8(&data[2 * i], 1))
       {
         return setLastResult(ResultCodes::ERROR_SN);
       }
@@ -129,12 +121,12 @@ gbj_htu21::ResultCodes gbj_htu21::readSerialNumber()
       are 2 byte tripples: SNC1-SNC0-CRC, SNA1-SNA0-CRC.
     */
     _status.serialSNC = (data[0] << 8) | data[1];
-    if (!checkCrc8(_status.serialSNC, data[2]))
+    if (!checkCrc8(data))
     {
       return setLastResult(ResultCodes::ERROR_SN);
     }
     _status.serialSNA = (data[3] << 8) | data[4];
-    if (!checkCrc8(_status.serialSNA, data[5]))
+    if (!checkCrc8(&data[3]))
     {
       return setLastResult(ResultCodes::ERROR_SN);
     }
