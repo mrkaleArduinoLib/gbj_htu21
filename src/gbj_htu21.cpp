@@ -92,15 +92,15 @@ gbj_htu21::ResultCodes gbj_htu21::readSerialNumber()
     {
       return setLastResult(ResultCodes::ERROR_SN);
     }
-    _status.serialSNB = 0x00000000;
+    status_.serialSNB = 0x00000000;
     /* From SNB_3 to SNB_0.
       After each SNB byte the CRC byte follows, i.e., there are 4 pairs of
       SNB-CRC bytes. Each SNB byte is CRC checked separately.
     */
     for (uint8_t i = 0; i < (sizeof(data) / sizeof(data[0]) / 2); i++)
     {
-      _status.serialSNB <<= 8;
-      _status.serialSNB |= data[2 * i];
+      status_.serialSNB <<= 8;
+      status_.serialSNB |= data[2 * i];
       if (!checkCrc8(&data[2 * i], 1))
       {
         return setLastResult(ResultCodes::ERROR_SN);
@@ -120,12 +120,12 @@ gbj_htu21::ResultCodes gbj_htu21::readSerialNumber()
       After each pair of SNC and SNA bytes the CRC byte follows, i.e., there
       are 2 byte tripples: SNC1-SNC0-CRC, SNA1-SNA0-CRC.
     */
-    _status.serialSNC = (data[0] << 8) | data[1];
+    status_.serialSNC = (data[0] << 8) | data[1];
     if (!checkCrc8(data))
     {
       return setLastResult(ResultCodes::ERROR_SN);
     }
-    _status.serialSNA = (data[3] << 8) | data[4];
+    status_.serialSNA = (data[3] << 8) | data[4];
     if (!checkCrc8(&data[3]))
     {
       return setLastResult(ResultCodes::ERROR_SN);

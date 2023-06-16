@@ -52,7 +52,7 @@ public:
     {
       return getLastResult();
     }
-    if (isError(setAddress()))
+    if (isError(setAddress(Addresses::ADDRESS)))
     {
       return getLastResult();
     }
@@ -88,7 +88,7 @@ public:
     {
       return getLastResult();
     }
-    if (_userReg.value != Resetting::RESET_REG_USER)
+    if (userReg_.value != Resetting::RESET_REG_USER)
     {
       return setLastResult(static_cast<ResultCodes>(ResultCodes::ERROR_RESET));
     }
@@ -153,12 +153,8 @@ public:
   }
 
   // Setters
-  inline void setUseValuesTyp() { _status.useValuesTyp = true; }
-  inline void setUseValuesMax() { _status.useValuesTyp = false; }
-  inline ResultCodes setAddress()
-  {
-    return gbj_twowire::setAddress(Addresses::ADDRESS);
-  }
+  inline void setUseValuesTyp() { status_.useValuesTyp = true; }
+  inline void setUseValuesMax() { status_.useValuesTyp = false; }
   // Turn on sensor's heater
   inline ResultCodes setHeaterEnabled() { return setHeaterStatus(true); }
   // Turn off sensor's heater
@@ -188,24 +184,24 @@ public:
   //
   inline void setHoldMasterMode(bool holdMasterMode)
   {
-    _status.holdMasterMode = holdMasterMode;
+    status_.holdMasterMode = holdMasterMode;
   }
 
   // Getters
-  inline uint16_t getSNA() { return _status.serialSNA; }
-  inline uint32_t getSNB() { return _status.serialSNB; }
-  inline uint16_t getSNC() { return _status.serialSNC; }
+  inline uint16_t getSNA() { return status_.serialSNA; }
+  inline uint32_t getSNB() { return status_.serialSNB; }
+  inline uint16_t getSNC() { return status_.serialSNC; }
   inline uint64_t getSerialNumber()
   {
     uint64_t serial;
-    serial = _status.serialSNA;
+    serial = status_.serialSNA;
     serial <<= 32;
-    serial |= _status.serialSNB;
+    serial |= status_.serialSNB;
     serial <<= 16;
-    serial |= _status.serialSNC;
+    serial |= status_.serialSNC;
     return serial;
   }
-  inline bool getHoldMasterMode() { return _status.holdMasterMode; }
+  inline bool getHoldMasterMode() { return status_.holdMasterMode; }
   // Flag about correct operating voltage
   inline bool getVddStatus()
   {
@@ -215,7 +211,7 @@ public:
     {
       return false;
     }
-    uint8_t status = (_userReg.value >> 6) & B1;
+    uint8_t status = (userReg_.value >> 6) & B1;
     return (status == 0);
   }
   // Flag about enabling the sensor's heater
@@ -226,21 +222,21 @@ public:
       return false;
     }
     // Separate heater status from HTRE (D2) bit of user register byte
-    uint8_t status = (_userReg.value >> 2) & B1;
+    uint8_t status = (userReg_.value >> 2) & B1;
     return (status == 1);
   }
 
   // Temperature resolution in bits
   inline uint8_t getResolutionTemp()
   {
-    return _resolusion
+    return resolusion_
       .tempBits[isSuccess(reloadUserRegister()) ? resolution() : 0];
   }
 
   // Relative humidity resolution in bits
   inline uint8_t getResolutionRhum()
   {
-    return _resolusion
+    return resolusion_
       .rhumBits[isSuccess(reloadUserRegister()) ? resolution() : 0];
   }
 
@@ -308,7 +304,7 @@ private:
     bool holdMasterMode;
     // Flag about using typical values from datasheet
     bool useValuesTyp;
-  } _status;
+  } status_;
   // Parameters of user register
   struct UserReg
   {
@@ -316,7 +312,7 @@ private:
     bool read;
     // Value of user register 1
     uint8_t value;
-  } _userReg;
+  } userReg_;
   // Indexes by resolution bits D7 and D0 value in user register
   struct Resolution
   {
@@ -362,18 +358,18 @@ private:
       4,
       7,
     };
-  } _resolusion;
-  inline bool getUseValuesTyp() { return _status.useValuesTyp; };
+  } resolusion_;
+  inline bool getUseValuesTyp() { return status_.useValuesTyp; };
 
   inline uint8_t getConversionTimeTempTyp()
   {
-    return _resolusion
+    return resolusion_
       .tempConvTimeTyp[isSuccess(reloadUserRegister()) ? resolution() : 0];
   }
   inline uint8_t getConversionTimeTempMax()
   {
     uint8_t resIdx = resolution();
-    return _resolusion
+    return resolusion_
       .tempConvTimeMax[isSuccess(reloadUserRegister()) ? resIdx : 0];
   }
   inline uint8_t getConversionTimeTemp()
@@ -384,12 +380,12 @@ private:
 
   inline uint8_t getConversionTimeRhumTyp()
   {
-    return _resolusion
+    return resolusion_
       .rhumConvTimeTyp[isSuccess(reloadUserRegister()) ? resolution() : 0];
   }
   inline uint8_t getConversionTimeRhumMax()
   {
-    return _resolusion
+    return resolusion_
       .rhumConvTimeMax[isSuccess(reloadUserRegister()) ? resolution() : 0];
   }
   inline uint8_t getConversionTimeRhum()
@@ -414,17 +410,17 @@ private:
       - Default value: none
       - Limited range: none
 
-    dataBytes - Number of bytes to be checked
+    byteCnt - Number of bytes to be checked
       - Data type: non-negative integer
       - Default value: 2
       - Limited range: 0 ~ 255
 
     RETURN: Flag about correct checksum
   */
-  inline bool checkCrc8(uint8_t *byteArray, uint8_t dataBytes = 2)
+  inline bool checkCrc8(uint8_t *byteArray, uint8_t byteCnt = 2)
   {
     uint8_t crc = 0;
-    for (uint8_t i = 0; i < dataBytes; i++)
+    for (uint8_t i = 0; i < byteCnt; i++)
     {
       crc ^= byteArray[i];
       for (int8_t b = 7; b >= 0; b--)
@@ -439,7 +435,7 @@ private:
         }
       }
     }
-    return crc == byteArray[dataBytes];
+    return crc == byteArray[byteCnt];
   }
 
   /*
@@ -456,8 +452,8 @@ private:
   inline uint8_t resolution()
   {
     // Separate resolution from RES1 (D7) and RES0 (D0) bit of user register
-    uint8_t res0 = (_userReg.value >> 0) & B1;
-    uint8_t res1 = (_userReg.value >> 7) & B1;
+    uint8_t res0 = (userReg_.value >> 0) & B1;
+    uint8_t res1 = (userReg_.value >> 7) & B1;
     return (res1 << 1) | res0;
   }
 
@@ -492,8 +488,8 @@ private:
     {
       return setLastResult(ResultCodes::ERROR_REGISTER);
     }
-    _userReg.value = data[0];
-    _userReg.read = true;
+    userReg_.value = data[0];
+    userReg_.read = true;
     return getLastResult();
   }
 
@@ -509,7 +505,7 @@ private:
   */
   inline ResultCodes reloadUserRegister()
   {
-    return _userReg.read ? getLastResult() : readUserRegister();
+    return userReg_.read ? getLastResult() : readUserRegister();
   }
 
   /*
@@ -525,12 +521,12 @@ private:
   */
   inline ResultCodes writeUserRegister()
   {
-    if (isError(busSend(Commands::CMD_REG_RHT_WRITE, _userReg.value)))
+    if (isError(busSend(Commands::CMD_REG_RHT_WRITE, userReg_.value)))
     {
       return getLastResult();
     }
     // Reread the user register the next time for sure
-    _userReg.read = false;
+    userReg_.read = false;
     return getLastResult();
   }
 
@@ -558,13 +554,13 @@ private:
     if (!getHeaterEnabled() && status)
     {
       // Set HTRE to 1
-      _userReg.value |= B00000100;
+      userReg_.value |= B00000100;
       return writeUserRegister();
     }
     if (getHeaterEnabled() && !status)
     {
       // Set HTRE to 0
-      _userReg.value &= B11111011;
+      userReg_.value &= B11111011;
       return writeUserRegister();
     }
     return getLastResult();
@@ -607,23 +603,23 @@ private:
       if (bitRes0)
       {
         // Set RES0 to 1
-        _userReg.value |= B00000001;
+        userReg_.value |= B00000001;
       }
       else
       {
         // Set RES0 to 0
-        _userReg.value &= B11111110;
+        userReg_.value &= B11111110;
       }
       // Set RES1
       if (bitRes1)
       {
         // Set RES1 to 1
-        _userReg.value |= B10000000;
+        userReg_.value |= B10000000;
       }
       else
       {
         // Set RES1 to 0
-        _userReg.value &= B01111111;
+        userReg_.value &= B01111111;
       }
       return writeUserRegister();
     }
